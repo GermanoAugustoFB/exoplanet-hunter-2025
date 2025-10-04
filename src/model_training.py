@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.impute import SimpleImputer
+from imblearn.over_sampling import SMOTE
 import joblib
 import os
 from visualization import plot_confusion_matrix, plot_feature_importance, plot_label_distribution
@@ -29,7 +30,7 @@ if not os.path.exists(DATA_PATH):
     print("Dica: Liste os arquivos com 'ls PythonNasaAppChallenge_VoyIAger/' (Ubuntu) ou 'dir PythonNasaAppChallenge_VoyIAger\' (Windows)")
     exit(1)
 
-# Carregar dados
+# Carregar dados do CSV
 print(f"📂 Carregando arquivo: {DATA_PATH}")
 try:
     df = pd.read_csv(DATA_PATH, comment='#', skiprows=52, low_memory=False)
@@ -63,8 +64,14 @@ print(f"🎯 Distribuição de labels: {np.bincount(y)} (0: Não Habitável, 1: 
 # Dividir dados
 X_train, X_test, y_train, y_test = train_test_split(X_imputed, y, test_size=0.2, random_state=42, stratify=y)
 
-# Treinar modelo com balanceamento
-model = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced')
+# Aplicar SMOTE para balancear as classes
+print("⚖️ Aplicando SMOTE para balanceamento de classes...")
+smote = SMOTE(random_state=42)
+X_train, y_train = smote.fit_resample(X_train, y_train)
+print(f"🎯 Distribuição após SMOTE: {np.bincount(y_train)} (0: Não Habitável, 1: Habitável)")
+
+# Treinar modelo
+model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 
 # Avaliar
