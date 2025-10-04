@@ -8,8 +8,13 @@ import plotly.figure_factory as ff
 import os
 
 # Caminhos para salvar gráficos
-BASE_PATH = os.path.join('..', 'graficos')  # Pasta para salvar gráficos
-os.makedirs(BASE_PATH, exist_ok=True)  # Criar pasta 'graficos' se não existir
+BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'graficos'))
+try:
+    os.makedirs(BASE_PATH, exist_ok=True)
+    print(f"📁 Pasta 'graficos' criada/verificada em: {BASE_PATH}")
+except Exception as e:
+    print(f"❌ Erro ao criar pasta 'graficos': {e}")
+    exit(1)
 
 def plot_confusion_matrix(y_true, y_pred, save_path=os.path.join(BASE_PATH, 'matriz_confusao.png')):
     """
@@ -21,26 +26,24 @@ def plot_confusion_matrix(y_true, y_pred, save_path=os.path.join(BASE_PATH, 'mat
     Returns:
         fig: Objeto matplotlib para uso opcional.
     """
-    cm = np.array([[0, 0], [0, 0]])  # Placeholder
     try:
         from sklearn.metrics import confusion_matrix
         cm = confusion_matrix(y_true, y_pred)
+        plt.figure(figsize=(6, 4))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                    xticklabels=['Não Habitável', 'Habitável'],
+                    yticklabels=['Não Habitável', 'Habitável'])
+        plt.title('Matriz de Confusão: Previsão de Habitabilidade')
+        plt.ylabel('Verdadeiro')
+        plt.xlabel('Previsto')
+        plt.tight_layout()
+        plt.savefig(save_path)
+        plt.close()
+        print(f"💾 Gráfico salvo em: {save_path}")
+        return plt.gcf()
     except Exception as e:
-        print(f"Erro ao calcular matriz de confusão: {e}")
+        print(f"❌ Erro ao gerar matriz de confusão: {e}")
         return None
-
-    plt.figure(figsize=(6, 4))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
-                xticklabels=['Não Habitável', 'Habitável'],
-                yticklabels=['Não Habitável', 'Habitável'])
-    plt.title('Matriz de Confusão: Previsão de Habitabilidade')
-    plt.ylabel('Verdadeiro')
-    plt.xlabel('Previsto')
-    plt.tight_layout()
-    plt.savefig(save_path)
-    print(f"💾 Gráfico salvo em: {save_path}")
-    # plt.show()  # Comentar para evitar warning em terminais sem GUI
-    return plt.gcf()
 
 def plot_feature_importance(features, importances, save_path=os.path.join(BASE_PATH, 'importancia_features.png')):
     """
@@ -52,16 +55,20 @@ def plot_feature_importance(features, importances, save_path=os.path.join(BASE_P
     Returns:
         fig: Objeto matplotlib para uso opcional.
     """
-    df = pd.DataFrame({'Feature': features, 'Importância': importances}).sort_values('Importância', ascending=False)
-    plt.figure(figsize=(8, 5))
-    sns.barplot(x='Importância', y='Feature', data=df, color='skyblue')
-    plt.title('Importância das Features no Modelo')
-    plt.xlabel('Importância')
-    plt.tight_layout()
-    plt.savefig(save_path)
-    print(f"💾 Gráfico salvo em: {save_path}")
-    # plt.show()  # Comentar para evitar warning
-    return plt.gcf()
+    try:
+        df = pd.DataFrame({'Feature': features, 'Importância': importances}).sort_values('Importância', ascending=False)
+        plt.figure(figsize=(8, 5))
+        sns.barplot(x='Importância', y='Feature', data=df, color='skyblue')
+        plt.title('Importância das Features no Modelo')
+        plt.xlabel('Importância')
+        plt.tight_layout()
+        plt.savefig(save_path)
+        plt.close()
+        print(f"💾 Gráfico salvo em: {save_path}")
+        return plt.gcf()
+    except Exception as e:
+        print(f"❌ Erro ao gerar gráfico de importância das features: {e}")
+        return None
 
 def plot_label_distribution(y, save_path=os.path.join(BASE_PATH, 'distribuicao_labels.png')):
     """
@@ -72,17 +79,21 @@ def plot_label_distribution(y, save_path=os.path.join(BASE_PATH, 'distribuicao_l
     Returns:
         fig: Objeto matplotlib para uso opcional.
     """
-    counts = np.bincount(y)
-    labels = ['Não Habitável', 'Habitável']
-    plt.figure(figsize=(6, 4))
-    sns.barplot(x=labels, y=counts, palette=['#1f77b4', '#ff7f0e'])
-    plt.title('Distribuição de Planetas: Habitáveis vs. Não Habitáveis')
-    plt.ylabel('Número de Planetas')
-    plt.tight_layout()
-    plt.savefig(save_path)
-    print(f"💾 Gráfico salvo em: {save_path}")
-    # plt.show()  # Comentar para evitar warning
-    return plt.gcf()
+    try:
+        counts = np.bincount(y)
+        labels = ['Não Habitável', 'Habitável']
+        plt.figure(figsize=(6, 4))
+        sns.barplot(x=labels, y=counts, palette=['#1f77b4', '#ff7f0e'])
+        plt.title('Distribuição de Planetas: Habitáveis vs. Não Habitáveis')
+        plt.ylabel('Número de Planetas')
+        plt.tight_layout()
+        plt.savefig(save_path)
+        plt.close()
+        print(f"💾 Gráfico salvo em: {save_path}")
+        return plt.gcf()
+    except Exception as e:
+        print(f"❌ Erro ao gerar gráfico de distribuição de labels: {e}")
+        return None
 
 def plot_confusion_matrix_plotly(y_true, y_pred):
     """
@@ -107,7 +118,7 @@ def plot_confusion_matrix_plotly(y_true, y_pred):
                          xaxis_title='Previsto', yaxis_title='Verdadeiro')
         return fig
     except Exception as e:
-        print(f"Erro ao criar matriz de confusão com Plotly: {e}")
+        print(f"❌ Erro ao criar matriz de confusão com Plotly: {e}")
         return None
 
 def plot_feature_importance_plotly(features, importances):
@@ -119,11 +130,15 @@ def plot_feature_importance_plotly(features, importances):
     Returns:
         fig: Objeto plotly para uso no Streamlit.
     """
-    df = pd.DataFrame({'Feature': features, 'Importância': importances}).sort_values('Importância', ascending=False)
-    fig = px.bar(df, x='Importância', y='Feature', orientation='h', title='Importância das Features no Modelo',
-                 color_discrete_sequence=['skyblue'])
-    fig.update_layout(xaxis_title='Importância', yaxis_title='')
-    return fig
+    try:
+        df = pd.DataFrame({'Feature': features, 'Importância': importances}).sort_values('Importância', ascending=False)
+        fig = px.bar(df, x='Importância', y='Feature', orientation='h', title='Importância das Features no Modelo',
+                     color_discrete_sequence=['skyblue'])
+        fig.update_layout(xaxis_title='Importância', yaxis_title='')
+        return fig
+    except Exception as e:
+        print(f"❌ Erro ao criar gráfico de importância com Plotly: {e}")
+        return None
 
 def plot_label_distribution_plotly(y):
     """
@@ -133,28 +148,27 @@ def plot_label_distribution_plotly(y):
     Returns:
         fig: Objeto plotly para uso no Streamlit.
     """
-    counts = np.bincount(y)
-    labels = ['Não Habitável', 'Habitável']
-    df = pd.DataFrame({'Label': labels, 'Contagem': counts})
-    fig = px.bar(df, x='Label', y='Contagem', title='Distribuição de Planetas: Habitáveis vs. Não Habitáveis',
-                 color_discrete_sequence=['#1f77b4', '#ff7f0e'])
-    fig.update_layout(yaxis_title='Número de Planetas')
-    return fig
+    try:
+        counts = np.bincount(y)
+        labels = ['Não Habitável', 'Habitável']
+        df = pd.DataFrame({'Label': labels, 'Contagem': counts})
+        fig = px.bar(df, x='Label', y='Contagem', title='Distribuição de Planetas: Habitáveis vs. Não Habitáveis',
+                     color_discrete_sequence=['#1f77b4', '#ff7f0e'])
+        fig.update_layout(yaxis_title='Número de Planetas')
+        return fig
+    except Exception as e:
+        print(f"❌ Erro ao criar gráfico de distribuição com Plotly: {e}")
+        return None
 
 if __name__ == "__main__":
-    # Exemplo de uso standalone com dados fictícios (substitua pelos dados reais)
-    y_true = np.array([0] * 548 + [1] * 2)  # Do treinamento anterior
-    y_pred = np.array([0] * 548 + [0] * 2)  # Do treinamento anterior
+    # Exemplo de uso standalone com dados fictícios
+    y_true = np.array([0] * 548 + [1] * 2)
+    y_pred = np.array([0] * 548 + [0] * 2)
     features = ['koi_period', 'koi_prad', 'koi_teq', 'koi_insol']
-    importances = [0.090789, 0.290536, 0.321802, 0.296872]  # Do treinamento anterior
-    y = np.array([0] * 2736 + [1] * 10)  # Distribuição de labels
+    importances = [0.090789, 0.290536, 0.321802, 0.296872]
+    y = np.array([0] * 2736 + [1] * 10)
 
     # Gerar gráficos com matplotlib/seaborn
     plot_confusion_matrix(y_true, y_pred)
     plot_feature_importance(features, importances)
     plot_label_distribution(y)
-
-    # Gerar gráficos com plotly (para teste)
-    fig_cm = plot_confusion_matrix_plotly(y_true, y_pred)
-    fig_fi = plot_feature_importance_plotly(features, importances)
-    fig_ld = plot_label_distribution_plotly(y)
